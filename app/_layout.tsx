@@ -1,39 +1,60 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
+//React
+import { useState } from 'react';
+
+//Expo
 import { Stack } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
-import 'react-native-reanimated';
 
-import { useColorScheme } from '@/hooks/useColorScheme';
+//Context
+import AppContext from "@/contexts";
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
-SplashScreen.preventAutoHideAsync();
-
-export default function RootLayout() {
-  const colorScheme = useColorScheme();
-  const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-  });
-
-  useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded]);
-
-  if (!loaded) {
-    return null;
-  }
-
+export default function Layout() {
+	
+	const [filterCharacters, setFilterCharacters] = useState('all')
+	const [filterSpecie, setFilterSpecie] = useState('all')
+	const [idsFavorites, setIdsFavorites] = useState<number[]>([])
+	const [textSearch, setTextSearch] = useState('')
+	
+	const contextApp = {
+		textSearch,
+		setTextSearch,
+		
+		filterCharacters,
+		setFilterCharacters,
+		
+		filterSpecie,
+		setFilterSpecie,
+		isFavorite: (characterId: number) => {
+			return idsFavorites.indexOf(characterId) !== -1
+		},
+		addFavorite: (characerId: number) => {
+			if(idsFavorites.indexOf(characerId) === -1) {
+				idsFavorites.push(characerId)
+				setIdsFavorites([...idsFavorites])
+			}
+		},
+		removeFavorite: (characerId: number) => {
+			const indexFound = idsFavorites.indexOf(characerId)
+			if(indexFound !== -1) {
+				idsFavorites.splice(indexFound, 1)
+				setIdsFavorites([...idsFavorites])
+			}
+		},
+	}
+	
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+		<AppContext.Provider value={contextApp}>
+			<Stack
+				screenOptions={{
+					headerStyle: {
+						backgroundColor: '#fff',
+					},
+					headerTintColor: '#000',
+					headerTitleStyle: {
+						fontWeight: 'bold',
+					},
+					headerShadowVisible: false,
+				}}
+			/>
+		</AppContext.Provider>
   );
 }
